@@ -1,0 +1,23 @@
+-'GPT_training_information_GUARDEN.pdf': Documentos que se presentan a continuación y una pequeña explicación de la información que incorpora cada documento.
+-'AMB_available_Information_(HUA).pdf': Recoge toda la información disponible en la Web y documentación de AMB (Area Metropolitana de Barcelona). Se listan los documentos empezando por AMB:
+·'AMB_Actuacions_millora_protecció_platges_litoral_nord_metropolità.pdf'
+·'AMB_Dinamica_litoral_Port_Masnou.pdf'
+·'AMB_Dinàmica_litoral_sud_metropolità.pdf'
+·'AMB_Estudi_platges_Nord.pdf'
+·'AMB_Estudis_previs_estabilitza_Gavà_Viladecans.pdf'
+·'AMB_Informe_sobre_la_qualitat_sanitària_de_la_sorra_a_les_platges_Metropolitanes_2020.pdf'
+·'AMB_Servei_platges_metropolitana.pdf'
+·'AMB_Socioeconomic_Impact_of_Barcelona_Metropolitan_Beaches.pdf'
+Se realizó una convención en Berna de la cual salieron los siguientes cuatro Apendix:
+-'Berna_ApendixI.pdf': Listado de flora especies estríctamente protegidas.
+-'Berna_ApendixII.pdf': Listado de fauna especies estríctamente protegidas.
+-'Berna_ApendixIII.pdf': Listado de fauna especies protegidas.
+-'Berna_ApendixIV.pdf': Listado de métodos y maneras de matar, capturar y otras formas de explotación de las especies.
+-Dos documentos del Boletin Oficial del Estado (BOE): 
+·'BOE_Amenazadas_Barcerlona.pdf': Lista de especies en peligro o amenazadas (en ANEXO II, pag 1), cuya explotacion esta reglamentada (en ANEXO III, pag 4).
+·'BOE_ProteccionEspecial_Amenazadas.pdf': Listado de Especies Silvestres en Régimen de Protección Especial y del Catálogo Español de Especies Amenazadas.
+-'Especies_interés_DirectivaHabitats.pdf': Un Diario Oficial de las Comunidades Europeas, relativa a la conservación de los hábitats naturales y de la fauna y flora silvestres, se listan a partir de la página indicada: Anexo I (pag 9): tipos de hábitats naturales de interés para cuya conservación es necesario designar zonas especiales de conservación.; Anexo II (pag 15): especies animales y vegetales de interés comunitario para cuya conservación es necesario designar zonas especiales de conservación.; Anexo III (pag 30): criterios de selección de los lugares que pueden clasificarse como lugares de importancia comunitaria y designarse zonas especiales de conservación.; Anexo IV (pag 31): especies animales y vegetales de interés comunitario que requieren una protección estricta.; Anexo V (pag 39): especies animales y vegetales de interés comunitario cuya recogida en la naturaleza y cuya explotación pueden ser objeto de medidas de gestión.; Anexo VI (pag 43): métodos y medios de captura y sacrificios y modos de transporte prohibidos.
+-'Invasoras_catalogadas_Catalunya.pdf': Listado en modo tabla de todas las especies catalogadas como invasoras en Catalunya.
+-'Invasoras_Europa.pdf': Listado de las especies invasoras de interés en la Union Europea.
+-'Listado_por_categoria_amenaza.pdf': Listado de especies por taxon_name ordenadas por categorías de amenaza. Las categorías empiezan en las siguientes páginas: Peligro extinción: flora (pag 1), invertebrados (pag 4), vertebrados (pag 5); Sensible a la alteración de su hábitat: flora (pag 7), invertebrados (pag 8), vertebrados (pag 9); Vulnerable: flora (pag 10), invertebrado (pag 11), vertebrados (pag 12); De interés especial: flora (pag 14), invertebrados (pag 15), vertebrados (pag 16); Descatalogados: flora, vertebraados (pag 25).
+-'Plantas_alóctonas_invasoras_Catalunya.pdf': Plantas invasoras de España. En la página 12 se muestra una tabla con diversos bioagentes utilizados, experimentados o que han atacado de manera espontánea a plantas alóctonas invasoras presentes en España. En la página 14 se muestra una tabla con las principales especies alóctonas invasoras para cada una de las cuatro zonas establecidas de acuerdo con la incidencia y problemática del fenómeno.
