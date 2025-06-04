@@ -28,3 +28,4 @@ plotly
 kaleido
 geopandas
 shapely
+pypdf

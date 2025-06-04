@@ -147,7 +147,7 @@ def convert_to_list(value):
     if isinstance(value, str):
         try:
             return ast.literal_eval(value)
-        except ValueError:
+        except (ValueError, SyntaxError):
             return [value.strip()]
     return value
 
