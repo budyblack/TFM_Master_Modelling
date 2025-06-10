@@ -186,7 +186,6 @@ def join_data(directory, main_project):
         df = pd.read_csv(file)
         dfs.append(df)
 
-    dfs[0] = dfs[0].rename(columns={'address': 'place'})
     df_merge = pd.merge(dfs[0], dfs[1], on=['taxon_name'], how='left')
     df_merge['tipo'] = df_merge['tipo'].apply(lambda x: [] if (pd.isna(x) or x == []) else x)
     df_merge['observed_on'] = pd.to_datetime(df_merge['observed_on'])
@@ -245,7 +244,7 @@ if __name__ == "__main__":
 
     for city in cities.keys():
         df_city = pd.read_csv(f"{directory}/data/obs_{city}.csv")
-        df_obs.loc[df_obs["id"].isin(df_city["id"].to_list()), "address"] = city
+        df_obs.loc[df_obs["id"].isin(df_city["id"].to_list()), "place"] = city
 
     df_obs.to_csv(f"{directory}/data/{main_project}_obs.csv", index=False)
 
