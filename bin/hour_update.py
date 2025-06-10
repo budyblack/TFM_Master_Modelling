@@ -194,6 +194,10 @@ def join_data(directory, main_project):
     df_merge['Total individuals observed in BioplatgesMet project'] = df_merge['taxon_name'].map(dfs[2].set_index('taxon_name')['Total observations count'])
     df_merge['Establishment means'] = df_merge['taxon_name'].map(dfs[2].set_index('taxon_name')['Establishment means'])
     df_merge['Conservation status'] = df_merge['taxon_name'].map(dfs[2].set_index('taxon_name')['Conservation status'])
+    
+    #Change all the identifications count that are not specified (appear as 0) to at least 1
+    df_merge.loc[df_merge['identifications_count'] == 0, 'identifications_count'] = 1
+
     #df_merge['specie'] = df_merge['taxon_name'].map(dfs[2].set_index('taxon_name')['specie'])
     
     df_merge[['sector', 'subplace', 'id_place']] = df_merge.apply(
@@ -227,8 +231,10 @@ if __name__ == "__main__":
         "El Prat de Llobregat": [351],
         "Sant Adrià del Besòs": [352],
         "Viladecans": [354],
-        "Barcelona": [355, 356],
-        "Badalona": [347, 348],
+        "Barcelona Nord": [355],
+        "Barcelona Sud": [356],
+        "Badalona Nord": [347],
+        "Badalona Sud": [348]
     }
 
     get_obs_from_main_project(directory, main_project)
@@ -237,16 +243,7 @@ if __name__ == "__main__":
     # Incluimos ciudad en cada observación del proyecto principal
     df_obs = pd.read_csv(f"{directory}/data/{main_project}_obs.csv")
 
-    for city in [
-        "Badalona",
-        "Barcelona",
-        "Castelldefels",
-        "El Prat de Llobregat",
-        "Gavà",
-        "Montgat",
-        "Sant Adrià del Besòs",
-        "Viladecans",
-    ]:
+    for city in cities.keys():
         df_city = pd.read_csv(f"{directory}/data/obs_{city}.csv")
         df_obs.loc[df_obs["id"].isin(df_city["id"].to_list()), "address"] = city
 

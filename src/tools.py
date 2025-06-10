@@ -4,11 +4,10 @@ from datetime import date, datetime, timedelta
 from langchain.agents import Tool
 from langchain_core.tools import create_retriever_tool
 from langchain_experimental.agents.agent_toolkits import create_csv_agent
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage
 from langchain.agents.agent_types import AgentType
 from langchain_community.retrievers import WikipediaRetriever
 import math
-import os
 import requests
 from typing import Optional
 from pydantic import BaseModel, Field
@@ -16,6 +15,8 @@ from langchain.tools import tool
 from langchain_experimental.tools.python.tool import PythonREPLTool
 import plotly.express as px
 import plotly.io as pio
+import re
+import uuid
 
 
 
@@ -395,45 +396,204 @@ def tool_dashboard_context(topic: str) -> str:
     """Returns a summary of the last registered information in the project during the period passed (monitorized and interesting species registered and new species and users added in the project)."""
     return generate_context(topic)
 
+
+import geopandas as gpd
+import geopandas as gpd
+import plotly.graph_objects as go
+from shapely.geometry import Polygon, MultiPolygon
+import colorsys
+
+class str2(str):
+    def __repr__(self):
+        return ''.join(('"', super().__repr__()[1:-1], '"'))
+
 class CustomPythonTool(PythonREPLTool):
     def __init__(self):
         super().__init__()
-        df1 = pd.read_csv('data/obs_tipos.csv')
-        df2 = pd.read_csv('data/Experts_taxons_information.csv')
+        #df1 = pd.read_csv('data/obs_tipos.csv')
+        #df2 = pd.read_csv('data/Experts_taxons_information.csv')
+        gdf_gpkg = gpd.read_file("data/subzonas/poligons_bioplatgesmet.gpkg")
+
+        #gdf_gpkg = gdf_gpkg.rename(columns={
+        #    'Name': 'place',
+        #    'PLATJA': 'subplace',
+        #    'Sectors': 'sector'
+        #})
+
+        # Dictionary of name replacements
+        #cities = {
+        #    "Montgat Platges": "Montgat",
+        #    "El Prat": "El Prat de Llobregat",
+        #    "Barcelona - Zona Nort": "Barcelona Nord",
+        #    "Barcelona - Zona Sud": "Barcelona Sud",
+        #    "Badalona nort": "Badalona Nord",
+        #    "Badalona sud": "Badalona Sud"
+        #}
+
+        # Apply replacements in the 'place' column
+        #gdf_gpkg['place'] = gdf_gpkg['place'].replace(cities)
+        def get_df1():
+            return pd.read_csv('data/obs_tipos.csv')
+
+        def get_df2():
+            return pd.read_csv('data/Experts_taxons_information.csv')
+        
+        def get_figure():
+            gdf = gpd.read_file("data/subzonas/poligons_bioplatgesmet.gpkg")
+            gdf['geometry'] = gdf['geometry'].simplify(tolerance=0.0001, preserve_topology=True)
+            if gdf.crs is None or gdf.crs.to_epsg() != 4326:
+                gdf = gdf.to_crs(epsg=4326)
+
+            # Group by PLATJA and Sectors
+            grouped = gdf.dissolve(by=['PLATJA', 'Sectors'], as_index=False)
+            platjas = gdf['PLATJA'].unique()
+            sectors_per_platja = {p: gdf[gdf['PLATJA'] == p]['Sectors'].unique() for p in platjas}
+
+            def hsl_to_rgba(h, s, l, alpha):
+                r, g, b = colorsys.hls_to_rgb(h/360, l, s)
+                return f"rgba({int(r*255)}, {int(g*255)}, {int(b*255)}, {alpha})"
+
+            figure = go.Figure()
+
+            for _, row in grouped.iterrows():
+                geom = row.geometry
+                platja = row['PLATJA']
+                sector = row['Sectors']
+
+                base_hue = (list(platjas).index(platja) * 360 / len(platjas)) % 360
+                sectors = sectors_per_platja[platja]
+                sector_index = list(sectors).index(sector)
+                n_sectors = len(sectors)
+
+                hue = (base_hue + (sector_index * 360 / (n_sectors * 1.5))) % 360
+                saturation = 0.6
+                lightness = 0.6
+
+                fill_color = hsl_to_rgba(hue, saturation, lightness, 0.4)
+                line_color = hsl_to_rgba(hue, saturation, lightness * 0.6, 1)
+
+                hover_text = f"Subzone: {platja}<br>Sector: {sector}"
+
+                lon_all = []
+                lat_all = []
+                polygons = geom.geoms if isinstance(geom, MultiPolygon) else [geom]
+
+                for polygon in polygons:
+                    lon, lat = polygon.exterior.xy
+                    lon_all.extend(list(lon) + [None])
+                    lat_all.extend(list(lat) + [None])
+
+                figure.add_trace(go.Scattermapbox(
+                    lon=lon_all,
+                    lat=lat_all,
+                    mode='lines',
+                    fill='toself',
+                    fillcolor=fill_color,
+                    line=dict(color=line_color, width=2),
+                    name=f"{platja} - {sector}",
+                    hoverinfo='text',
+                    text=hover_text,
+                    showlegend=True,
+                    visible='legendonly'
+                ))
+
+            # Calculate map center
+            gdf_proj = gdf.to_crs(epsg=25831)
+            centroids_proj = gdf_proj.geometry.centroid
+            centroids_wgs84 = centroids_proj.to_crs(epsg=4326)
+            center_lat = centroids_wgs84.y.mean()
+            center_lon = centroids_wgs84.x.mean()
+
+            # Layout for scattermapbox
+            figure.update_layout(
+                mapbox=dict(
+                    style="open-street-map",
+                    center={"lat": center_lat, "lon": center_lon},
+                    zoom=12
+                ),
+                margin={"r":0, "t":0, "l":0, "b":0},
+                legend=dict(
+                    title="Subzones and Sectors",
+                    x=0.01,
+                    y=0.99,
+                    bgcolor="rgba(255,255,255,0.7)"
+                )
+            )
+            return figure
 
         # Inject your variables into the globals dict of the python REPL environment
         self.python_repl.globals.update({
-            'df1': df1,
-            'df2': df2,
+            'get_df1': get_df1,
+            'get_df2': get_df2,
+            'get_figure': get_figure,
+            'gdf_gpkg': gdf_gpkg,
             'pd': pd,
             'px': px,
             'pio': pio,
+            'uuid': uuid,
+            'go': go,
         })
 
         self.description = (
-            """You can execute Python code to manipulate data and generate plots. The environment has two preloaded pandas DataFrames: df1 and df2.
-                If asked or you think is better to generate a map or a plot, you can use the library plotly (for example for a map do plotly.express.scatter_map(df, lat='latitude', lon='longitude', color='subplace',hover_data={{...}}), the color is always the subplace if not specified). 
-                If you do a plot, do NOT show it and always save it using pio.write_json(fig, './tmp/plot_id.json'), where you will put as id a unique id to identify this plot.
+            """You can execute Python code to manipulate data and generate plots. You can call two pandas DataFrames: df1 and df2, doing get_df1() and get_df2(). You can also call get_figure() that returns a figure that is a OpenStreetMap with the subplaces and sectors already delimited.
+                You can import the libraries plotly.expres (px), plotly.io (pio), plotly.graph_objects (go), pandas (pd) and uuid.
+                To plot on a map, always get the figure with the get_figure() and do figure.add_trace(go.XYZmapbox(...)). Do not create a new fig or go.Figure(). The gdf_gpkg variable is also preloaded and ready to use.
+                If you do a plot, do NOT show it and always save it using pio.write_json(figure, f'./tmp/{uuid.uuid4()}'}.json').
                 1. Data Context:
                 - 'df1': Contains registered observations of species from 08-06-2022 till now. The 'df1' have the following features: observed_on,observed_on_time,taxon_name,place,subplace,sector,id_place,latitude,longitude,identifications_count,kingdom,phylum,class,order,family,genus,tipo,Establishment means,Conservation status,taxon_url_information,user_url. 
                     - The origin of the specie (if it is native or has been introduced) is contained in 'Establishment means' and 'Conservation status'.
                     - The observation place is given by the columns 'place', 'subplace', 'sector' and 'id_place'. The sector have values such as 'SA03', while the id_place have values such as '502'.
                     - The types of the specie observed are contained in the columns 'tipo' and 'Establishment means'. The 'tipo' column contains as value an array of one or more than one type. To filter by the type, you can use for example: df1[df1['tipo'].str.contains('Protegida', case=False, na=False)]
-                    - 'observed_on' is the date of observation (transform to datetime when needed).
+                    - 'observed_on' is the date of observation.
                 - 'df2': Contains the most interesting species in column 'taxon_name'.
                 2. Final answer guidance:
+                - Transform 'observed_on' to datetime format.
+                - For obtaining the last observation registered, you should sort by date 'observed_on'.
                 - Distinguish observations (rows), species ('taxon_name'), and identifications ('identifications_count').
                 - Count species uniquely by filtering unique 'taxon_name'.
                 - Do not invent data, use only what is loaded.
                 - Mention if data is missing (except the type and Establishment methods) and encourage better and more registration.
+                - When doing a map plot, you must not create a new figure using go.Figure(). Call get_figure and do figure.add_trace(...) to add your map trace.
                 - If asked for a prediction, study all the registered data asked and make a prediction based on that."""
         )
 
     def _run(self, code: str) -> str:
         try:
-            lines = code.strip().split('\n')
-            *body, last = lines
+            # Replace pio.write_json(fig, f"...") with file save + print path
+            pattern = r'pio\.write_json\s*\(\s*(.+?)\s*,\s*(f)?([\'"])(.+?)\3\s*\)'
+            def replacer(match):
+                fig = match.group(1).strip()
+                is_fstring = match.group(2)
+                quote = match.group(3)
+                template = match.group(4)
 
+                if is_fstring:
+                    return (
+                        f'json_path = f{quote}{template}{quote}\n'
+                        f'pio.write_json({fig}, json_path)\n'
+                        f'output = "File saved in path: " + json_path\n'
+                        f'output'
+                    )
+                else:
+                    return match.group(0)
+
+            code = re.sub(pattern, replacer, code)
+
+            targets = [
+                "La Pineda de Ca'l Francès",
+                "L'Estació",
+                "Pont d'en Botifarreta",
+                "Ca l'Arana",
+                "Platja de l'Estany"
+            ]
+            pattern = r"'(" + "|".join(re.escape(s) for s in targets) + r")'"
+
+            lines=[]
+            # Prepare code execution
+            lines = code.split('\n')
+            
+            #print(lines)
+            *body, last = lines if len(lines) > 1 else ([], lines[0])
             exec('\n'.join(body), self.python_repl.globals)
 
             try:
@@ -443,9 +603,10 @@ class CustomPythonTool(PythonREPLTool):
                 result = None
 
             if isinstance(result, pd.DataFrame):
-                return result.to_json(orient="records")  # JSON format for DataFrames
-
-            return str(result) if result is not None else "Execution completed with no output."
+                return result.to_json(orient="records")
+            elif result is not None:
+                return str(result)
+            return "Execution completed with no output."
 
         except Exception as e:
             return f"Error: {e}"
